@@ -1,11 +1,9 @@
-import { Button } from "@/components/ui/button";
+import { prisma } from "@/lib/db";
 
-function page() {
-  return (
-    <div className="justify-center">
-      <Button>Hello!</Button>
-    </div>
-  );
-}
+const Page = async () => {
+  const users = await prisma.author.findMany();
 
-export default page;
+  return <div className="justify-center">{JSON.stringify(users, null, 2)}</div>;
+};
+
+export default Page;
