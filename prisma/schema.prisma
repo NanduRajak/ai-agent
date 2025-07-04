@@ -14,23 +14,35 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Author {
-  @@map("authors")
-
-  id        Int      @id @default(autoincrement())
-  name      String
-  bio       String?
-  country   String?
-  createdAt DateTime @default(now()) @map("created_at")
-  books     Book[]
+enum MessageRole {
+  USER
+  ASSISTANT
+}
+enum MessageType {
+  RESULT
+  ERROR
 }
 
-model Book {
-  @@map("books")
+model Message {
+  id String @id @default(uuid())
+  content String
+  role MessageRole
+  type MessageType
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  id        Int      @id @default(autoincrement())
-  title     String
-  authorId  Int      @map("author_id")
-  createdAt DateTime @default(now()) @map("created_at")
-  author    Author   @relation(fields: [authorId], references: [id])
+  fragment Fragment?
+}
+
+model Fragment {
+  id String @id @default(uuid())
+  messageId String @unique
+  message Message @relation(fields: [messageId],references:[id],onDelete: Cascade)
+
+  sandboxUrl String
+  title String
+  files Json
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
