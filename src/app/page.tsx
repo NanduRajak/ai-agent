@@ -17,7 +17,7 @@ const Page = () => {
       onError: (error) => {
         toast.error(error.message);
       },
-      onSuccess: (data) => {
+      onSuccess: (data: any) => {
         router.push(`/projects/${data.id}`);
       },
     })
@@ -28,7 +28,7 @@ const Page = () => {
         <Input value={value} onChange={(e) => setValue(e.target.value)} />
         <Button
           disabled={createProject.isPending}
-          onClick={() => createProject.mutate({ value: value })}
+          onClick={() => createProject.mutate({ value })}
         >
           Submit{" "}
         </Button>
