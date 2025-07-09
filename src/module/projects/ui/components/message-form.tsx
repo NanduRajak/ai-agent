@@ -4,13 +4,14 @@ import { toast } from "sonner";
 import { useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import { ArrowUpIcon, Loader2Icon } from "lucide-react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { useTRPC } from "@/trpc/client";
 import { Button } from "@/components/ui/button";
 import { Form, FormField } from "@/components/ui/form";
 import { z } from "zod";
-import { error } from "console";
+import { Usage } from "./usage";
+import { useRouter } from "next/navigation";
 
 interface Props {
   projectId: string;
@@ -24,10 +25,12 @@ const formSchema = z.object({
 });
 
 export const MessageForm = ({ projectId }: Props) => {
-  const [isFocused, setIsFocused] = useState(false);
-  const showUsage = false;
   const trpc = useTRPC();
   const queryClient = useQueryClient();
+  const router = useRouter();
+
+  const { data: usage } = useQuery(trpc.usage.status.queryOptions());
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -42,9 +45,14 @@ export const MessageForm = ({ projectId }: Props) => {
         queryClient.invalidateQueries(
           trpc.messages.getMany.queryOptions({ projectId })
         );
+        queryClient.invalidateQueries(trpc.usage.status.queryOptions());
       },
       onError: (error) => {
         toast.error(error.message);
+
+        if (error.data?.code === "TOO_MANY_REQUESTS") {
+          router.push("/pricing");
+        }
       },
     })
   );
@@ -56,11 +64,14 @@ export const MessageForm = ({ projectId }: Props) => {
     });
   };
 
+  const [isFocused, setIsFocused] = useState(false);
   const isPending = createMessage.isPending;
   const isButtonDisabled = isPending || !form.formState.isValid;
+  const showUsage = !!usage;
 
   return (
     <Form {...form}>
+      {showUsage && <Usage points={0} msBeforeNext={0} />}
       <form
         onSubmit={form.handleSubmit(onSubmit)}
         className={cn(
