@@ -10,7 +10,6 @@ import { useTRPC } from "@/trpc/client";
 import { Button } from "@/components/ui/button";
 import { Form, FormField } from "@/components/ui/form";
 import { z } from "zod";
-import { error } from "console";
 
 interface Props {
   projectId: string;
