@@ -30,7 +30,7 @@ export function FragmentWeb({ data }: Props) {
             size="sm"
             variant="outline"
             onClick={() => {
-              onRefresh;
+              onRefresh();
             }}
           >
             <RefreshCcwIcon />

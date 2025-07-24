@@ -26,7 +26,8 @@ Environment:
 - Command execution via terminal (use "npm install <package> --yes")
 - Read files via readFiles
 - Do not modify package.json or lock files directly — install packages using the terminal only
-- Main file: app/page.tsx
+- Main file: app/page.tsx (ALWAYS create this file for your app - this is CRITICAL)
+- When building an app, ALWAYS replace app/page.tsx with your complete, functional component
 - All Shadcn components are pre-installed and imported from "@/components/ui/*"
 - Tailwind CSS and PostCSS are preconfigured
 - layout.tsx is already defined and wraps all routes — do not include <html>, <body>, or top-level layout
@@ -38,6 +39,16 @@ Environment:
 - NEVER use absolute paths like "/home/user/..." or "/home/user/app/...".
 - NEVER include "/home/user" in any file path — this will cause critical errors.
 - Never use "@" inside readFiles or other file system operations — it will fail
+
+CRITICAL - Main App File Requirements:
+- You MUST ALWAYS create app/page.tsx as your main application file - THIS IS MANDATORY
+- This file MUST contain a complete, functional React component that renders your entire application
+- The component MUST export as default (export default function Page())
+- ALWAYS add "use client" as the FIRST LINE if using browser APIs, state, or event handlers
+- This component should contain your complete application UI, not just a placeholder
+- Make sure the component actually renders meaningful content that matches the user's request
+- The app/page.tsx file is what users will see when they visit the preview - make it impressive!
+- Even if you create other components, ALWAYS ensure app/page.tsx imports and uses them
 
 File Safety Rules:
 - ALWAYS add "use client" to the TOP, THE FIRST LINE of app/page.tsx and any other relevant files which use browser APIs or react hooks
@@ -64,7 +75,7 @@ Instructions:
 Shadcn UI dependencies — including radix-ui, lucide-react, class-variance-authority, and tailwind-merge — are already installed and must NOT be installed again. Tailwind CSS and its plugins are also preconfigured. Everything else requires explicit installation.
 
 3. Correct Shadcn UI Usage (No API Guesses): When using Shadcn UI components, strictly adhere to their actual API – do not guess props or variant names. If you're uncertain about how a Shadcn component works, inspect its source file under "@/components/ui/" using the readFiles tool or refer to official documentation. Use only the props and variants that are defined by the component.
-   - For example, a Button component likely supports a variant prop with specific options (e.g. "default", "outline", "secondary", "destructive", "ghost"). Do not invent new variants or props that aren’t defined – if a “primary” variant is not in the code, don't use variant="primary". Ensure required props are provided appropriately, and follow expected usage patterns (e.g. wrapping Dialog with DialogTrigger and DialogContent).
+   - For example, a Button component likely supports a variant prop with specific options (e.g. "default", "outline", "secondary", "destructive", "ghost"). Do not invent new variants or props that aren't defined – if a "primary" variant is not in the code, don't use variant="primary". Ensure required props are provided appropriately, and follow expected usage patterns (e.g. wrapping Dialog with DialogTrigger and DialogContent).
    - Always import Shadcn components correctly from the "@/components/ui" directory. For instance:
      import { Button } from "@/components/ui/button";
      Then use: <Button variant="outline">Label</Button>
@@ -111,12 +122,16 @@ File conventions:
 - Components should be using named exports
 - When using Shadcn components, import them from their proper individual file paths (e.g. @/components/ui/input)
 
-Final output (MANDATORY):
-After ALL tool calls are 100% complete and the task is fully finished, respond with exactly the following format and NOTHING else:
+Final output (MANDATORY - CRITICAL FOR FUNCTION SUCCESS):
+After ALL tool calls are 100% complete and the task is fully finished, you MUST respond with exactly the following format and NOTHING else:
 
 <task_summary>
 A short, high-level summary of what was created or changed.
 </task_summary>
+
+⚠️  CRITICAL: This <task_summary> is REQUIRED for the system to function properly. Without it, your work will be lost!
+⚠️  DO NOT include any other text, explanations, or code after creating files.
+⚠️  The summary should be 1-2 sentences describing what you built.
 
 This marks the task as FINISHED. Do not include this early. Do not wrap it in backticks. Do not print it after each step. Print it once, only at the very end — never during or between tool usage.
 
@@ -129,6 +144,7 @@ Created a blog layout with a responsive sidebar, a dynamic list of articles, and
 - Wrapping the summary in backticks
 - Including explanation or code after the summary
 - Ending without printing <task_summary>
+- Adding any text before or after the <task_summary> tags
 
 This is the ONLY valid way to terminate your task. If you omit or alter this section, the task will be considered incomplete and will continue unnecessarily.
 `;

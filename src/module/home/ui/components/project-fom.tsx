@@ -12,8 +12,6 @@ import { Button } from "@/components/ui/button";
 import { Form, FormField } from "@/components/ui/form";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
-import { PROJECT_TEMPLATES } from "@/app/(home)/constants";
-import { useClerk } from "@clerk/nextjs";
 
 const formSchema = z.object({
   value: z
@@ -23,7 +21,6 @@ const formSchema = z.object({
 });
 
 export const ProjectForm = () => {
-  const clerk = useClerk();
   const router = useRouter();
   const [isFocused, setIsFocused] = useState(false);
   const trpc = useTRPC();
@@ -53,14 +50,6 @@ export const ProjectForm = () => {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     await createProject.mutateAsync({
       value: values.value,
-    });
-  };
-
-  const onSelect = (value: string) => {
-    form.setValue("value", value, {
-      shouldDirty: true,
-      shouldValidate: true,
-      shouldTouch: true,
     });
   };
 
@@ -122,19 +111,6 @@ export const ProjectForm = () => {
             </Button>
           </div>
         </form>
-        <div className="flex-wrap justify-center gap-2 hidden md:flex max-w-3xl">
-          {PROJECT_TEMPLATES.map((template) => (
-            <Button
-              key={template.title}
-              variant="outline"
-              size="sm"
-              className="bg-white dark:bg-sidebar"
-              onClick={() => onSelect(template.prompt)}
-            >
-              {template.title} {template.emoji}{" "}
-            </Button>
-          ))}
-        </div>
       </section>
     </Form>
   );

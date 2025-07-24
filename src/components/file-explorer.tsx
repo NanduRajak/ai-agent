@@ -1,9 +1,16 @@
-import { CopyCheckIcon, CopyIcon } from "lucide-react";
+import {
+  CopyCheckIcon,
+  CopyIcon,
+  EditIcon,
+  SaveIcon,
+  XIcon,
+} from "lucide-react";
 import { useState, useMemo, useCallback, Fragment } from "react";
 
 import { Hint } from "@/components/hint";
 import { Button } from "@/components/ui/button";
 import { CodeView } from "@/components/code-view";
+import { Textarea } from "@/components/ui/textarea";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -18,15 +25,41 @@ import {
   BreadcrumbEllipsis,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { _toLowerCase } from "zod/v4/core";
 import { convertFilesToTreeItems } from "@/lib/utils";
 import { TreeView } from "./tree-view";
 
 type FileCollection = { [path: string]: string };
 
 function getLanguageFromExtension(filename: string): string {
-  const extention = filename.split(".").pop()?.toLowerCase();
-  return extention || "text";
+  const ext = filename.split(".").pop();
+  const extension = ext ? ext.toLowerCase() : "";
+
+  // Map file extensions to language identifiers
+  const extensionMap: { [key: string]: string } = {
+    js: "javascript",
+    jsx: "jsx",
+    ts: "typescript",
+    tsx: "tsx",
+    json: "json",
+    html: "html",
+    css: "css",
+    md: "markdown",
+    py: "python",
+    java: "java",
+    cpp: "cpp",
+    c: "c",
+    php: "php",
+    rb: "ruby",
+    go: "go",
+    rs: "rust",
+    sh: "bash",
+    yml: "yaml",
+    yaml: "yaml",
+    xml: "xml",
+    sql: "sql",
+  };
+
+  return extensionMap[extension] || "text";
 }
 
 interface FileBreadCrumbProps {
@@ -88,11 +121,14 @@ const FileBreadCrumb = ({ filePath }: FileBreadCrumbProps) => {
 };
 interface FileExplorerProps {
   files: FileCollection;
+  onFilesUpdate?: (updatedFiles: FileCollection) => void;
 }
 
-export const FileExplorer = ({ files }: FileExplorerProps) => {
+export const FileExplorer = ({ files, onFilesUpdate }: FileExplorerProps) => {
   const [copied, setCopied] = useState(false);
-  const [selectdFile, setSelectedFile] = useState<string | null>(() => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedContent, setEditedContent] = useState("");
+  const [selectedFile, setSelectedFile] = useState<string | null>(() => {
     const fileKeys = Object.keys(files);
     return fileKeys.length > 0 ? fileKeys[0] : null;
   });
@@ -104,56 +140,126 @@ export const FileExplorer = ({ files }: FileExplorerProps) => {
   const handleFileSelect = useCallback(
     (filePath: string) => {
       if (files[filePath]) {
+        if (isEditing) {
+          setIsEditing(false);
+          setEditedContent("");
+        }
         setSelectedFile(filePath);
       }
     },
-    [files]
+    [files, isEditing]
   );
 
   const handleCopy = useCallback(() => {
-    if (selectdFile) {
-      navigator.clipboard.writeText(files[selectdFile]);
+    if (selectedFile) {
+      navigator.clipboard.writeText(files[selectedFile]);
       setCopied(true);
       setTimeout(() => {
         setCopied(false);
       }, 2000);
     }
-  }, [selectdFile, files]);
+  }, [selectedFile, files]);
+
+  const handleEdit = useCallback(() => {
+    if (selectedFile) {
+      setEditedContent(files[selectedFile]);
+      setIsEditing(true);
+    }
+  }, [selectedFile, files]);
+
+  const handleSave = useCallback(() => {
+    if (selectedFile && onFilesUpdate) {
+      const updatedFiles = { ...files, [selectedFile]: editedContent };
+      onFilesUpdate(updatedFiles);
+      setIsEditing(false);
+      setEditedContent("");
+    }
+  }, [selectedFile, files, editedContent, onFilesUpdate]);
+
+  const handleCancel = useCallback(() => {
+    setIsEditing(false);
+    setEditedContent("");
+  }, []);
 
   return (
     <ResizablePanelGroup direction="horizontal">
       <ResizablePanel defaultSize={30} minSize={30} className="bg-sidebar">
         <TreeView
           data={treeData}
-          value={selectdFile}
+          value={selectedFile}
           onSelect={handleFileSelect}
         />
       </ResizablePanel>
       <ResizableHandle className="hover:bg-primary transition-colors" />
       <ResizablePanel defaultSize={70} minSize={50}>
-        {selectdFile && files[selectdFile] ? (
+        {selectedFile && files[selectedFile] ? (
           <div className="h-full w-full flex flex-col">
             <div className="border-b bg-sidebar px-4 py-2 flex justify-between items-center gap-x-2">
-              <FileBreadCrumb filePath={selectdFile} />
-              <Hint text="Copy to clipboard" side="bottom">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="ml-auto"
-                  onClick={handleCopy}
-                  disabled={copied}
-                >
-                  {copied ? <CopyCheckIcon /> : <CopyIcon />}
-                </Button>
-              </Hint>
+              <FileBreadCrumb filePath={selectedFile} />
+              <div className="flex items-center gap-x-2">
+                {isEditing ? (
+                  <>
+                    <Hint text="Save changes" side="bottom">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={handleSave}
+                        disabled={!onFilesUpdate}
+                      >
+                        <SaveIcon />
+                      </Button>
+                    </Hint>
+                    <Hint text="Cancel editing" side="bottom">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={handleCancel}
+                      >
+                        <XIcon />
+                      </Button>
+                    </Hint>
+                  </>
+                ) : (
+                  <>
+                    <Hint text="Edit file" side="bottom">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={handleEdit}
+                        disabled={!onFilesUpdate}
+                      >
+                        <EditIcon />
+                      </Button>
+                    </Hint>
+                    <Hint text="Copy to clipboard" side="bottom">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={handleCopy}
+                        disabled={copied}
+                      >
+                        {copied ? <CopyCheckIcon /> : <CopyIcon />}
+                      </Button>
+                    </Hint>
+                  </>
+                )}
+              </div>
             </div>
             <div className="flex-1 overflow-auto">
-              <CodeView
-                code={files[selectdFile]}
-                lang={getLanguageFromExtension(selectdFile)}
-              />
+              {isEditing ? (
+                <Textarea
+                  value={editedContent}
+                  onChange={(e) => setEditedContent(e.target.value)}
+                  className="h-full w-full resize-none border-none rounded-none font-mono text-xs"
+                  placeholder="Edit your code here..."
+                />
+              ) : (
+                <CodeView
+                  code={files[selectedFile]}
+                  lang={getLanguageFromExtension(selectedFile)}
+                />
+              )}
             </div>
-            <p>TODO: Code view</p>
           </div>
         ) : (
           <div className="flex h-full items-center justify-center text-muted-foreground">

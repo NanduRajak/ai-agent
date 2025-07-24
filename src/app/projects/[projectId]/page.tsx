@@ -25,7 +25,6 @@ const Page = async ({ params }: Props) => {
       <ErrorBoundary fallback={<p>Error!</p>}>
         <Suspense fallback={<p>Loading...</p>}>
           <ProjectView projectId={projectId} />
-          project id:{projectId}
         </Suspense>
       </ErrorBoundary>
     </HydrationBoundary>

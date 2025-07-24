@@ -11,12 +11,13 @@ import { Fragment } from "@/generated/prisma";
 import { ProjectHeader } from "../components/project-header";
 import { FragmentWeb } from "../components/fragment-web";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { EyeIcon, CodeIcon, CrownIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
+import { EyeIcon, CodeIcon } from "lucide-react";
 import { FileExplorer } from "@/components/file-explorer";
 import { UserControl } from "@/components/user-control";
 import { ErrorBoundary } from "react-error-boundary";
+import { useTRPC } from "@/trpc/client";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 interface Props {
   projectId: string;
@@ -25,6 +26,35 @@ interface Props {
 export const ProjectView = ({ projectId }: Props) => {
   const [activeFragment, setActiveFragment] = useState<Fragment | null>(null);
   const [tabState, setTabState] = useState<"preview" | "code">("preview");
+  const trpc = useTRPC();
+
+  const updateFiles = useMutation(
+    trpc.projects.updateFiles.mutationOptions({
+      onSuccess: () => {
+        toast.success("Files updated successfully");
+      },
+      onError: (error) => {
+        toast.error("Failed to update files: " + error.message);
+      },
+    })
+  );
+
+  const handleFilesUpdate = async (updatedFiles: {
+    [path: string]: string;
+  }) => {
+    if (activeFragment) {
+      await updateFiles.mutateAsync({
+        fragmentId: activeFragment.id,
+        files: updatedFiles,
+      });
+
+      // Update the local state immediately for better UX
+      setActiveFragment({
+        ...activeFragment,
+        files: updatedFiles,
+      });
+    }
+  };
   return (
     <div className="h-screen">
       <ResizablePanelGroup direction="horizontal">
@@ -68,12 +98,6 @@ export const ProjectView = ({ projectId }: Props) => {
                 </TabsTrigger>
               </TabsList>
               <div className="ml-auto flex items-center gap-x-2">
-                <Button asChild size="sm" variant="tertiary">
-                  <Link href="/pricing">
-                    <CrownIcon />
-                    Upgrade
-                  </Link>
-                </Button>
                 <UserControl />
               </div>
             </div>
@@ -84,6 +108,7 @@ export const ProjectView = ({ projectId }: Props) => {
               {!!activeFragment?.files && (
                 <FileExplorer
                   files={activeFragment.files as { [path: string]: string }}
+                  onFilesUpdate={handleFilesUpdate}
                 />
               )}
             </TabsContent>

@@ -1,4 +1,4 @@
-import { Navbar } from "@/module/home/ui/components/navbar";
+import { ChatHistorySidebar } from "@/module/home/ui/components/chat-history-sidebar";
 
 interface Props {
   children: React.ReactNode;
@@ -6,11 +6,10 @@ interface Props {
 
 const Layout = ({ children }: Props) => {
   return (
-    <main className="flex flex-col min-h-screen max-h-screen">
-      <Navbar />
+    <div className="min-h-screen bg-background">
       <div className="absolute inset-0 -z-10 h-full w-full bg-background dark:bg-[radial-gradient(transparent_1px)] [background-size:16px_16px]" />
-      <div className="flex-1 flex flex-col px-4 pb-4">{children}</div>
-    </main>
+      <ChatHistorySidebar>{children}</ChatHistorySidebar>
+    </div>
   );
 };
 
