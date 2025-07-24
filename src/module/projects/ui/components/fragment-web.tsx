@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { ExternalLinkIcon, RefreshCcwIcon } from "lucide-react";
+import { ExternalLinkIcon, RefreshCcwIcon, AlertTriangleIcon } from "lucide-react";
 
 import { Fragment } from "@/generated/prisma";
 import { Button } from "@/components/ui/button";
 import { Hint } from "@/components/hint";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface Props {
   data: Fragment;
@@ -22,6 +23,10 @@ export function FragmentWeb({ data }: Props) {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  // Simple check if sandbox URL exists and looks valid
+  const hasValidUrl = data.sandboxUrl && data.sandboxUrl.startsWith('https://');
+  
   return (
     <div className="flex flex-col w-full h-full">
       <div className="p-2 border-b bg-sidebar flex items-center gap-x-2">
@@ -29,9 +34,7 @@ export function FragmentWeb({ data }: Props) {
           <Button
             size="sm"
             variant="outline"
-            onClick={() => {
-              onRefresh();
-            }}
+            onClick={onRefresh}
           >
             <RefreshCcwIcon />
           </Button>
@@ -61,13 +64,27 @@ export function FragmentWeb({ data }: Props) {
           </Button>
         </Hint>
       </div>
-      <iframe
-        key={fragmentKey}
-        className="h-full w-full"
-        sandbox="allow-forms allow-scripts allow-same-origin"
-        loading="lazy"
-        src={data.sandboxUrl}
-      />
+      
+      {!hasValidUrl ? (
+        <div className="flex-1 flex items-center justify-center p-8">
+          <Alert className="max-w-md">
+            <AlertTriangleIcon className="h-4 w-4" />
+            <AlertDescription>
+              No preview available. The sandbox URL is missing or invalid.
+            </AlertDescription>
+          </Alert>
+        </div>
+      ) : (
+        <iframe
+          key={fragmentKey}
+          className="h-full w-full border-0"
+          src={data.sandboxUrl}
+          title="Sandbox Preview"
+          allow="camera; microphone; fullscreen; display-capture"
+          sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals"
+          loading="lazy"
+        />
+      )}
     </div>
   );
 }
