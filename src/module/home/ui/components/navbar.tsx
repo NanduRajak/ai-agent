@@ -5,6 +5,7 @@ import Image from "next/image";
 import { SignedIn, SignedOut, SignInButton, SignUpButton } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { UserControl } from "@/components/user-control";
+import { ThemeToggle } from "@/components/theme-toggle";
 import {
   Sheet,
   SheetContent,
@@ -12,7 +13,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { MenuIcon } from "lucide-react";
+import { MenuIcon, HomeIcon } from "lucide-react";
 import { MobileChatHistory } from "@/module/home/ui/components/mobile-chat-history";
 
 export const Navbar = () => {
@@ -40,9 +41,18 @@ export const Navbar = () => {
             </Sheet>
           </SignedIn>
 
-          <Link href="/" className="flex items-center gap-2">
-            <Image src="/logo.svg" alt="Vibe" width={24} height={24} />
-            <span className="font-semibold text-lg">Vibe</span>
+          <Link
+            href="/"
+            className="flex items-center gap-2 group transition-all duration-200"
+          >
+            <div className="relative">
+              <Image src="/logo.svg" alt="Vibe" width={24} height={24} />
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full opacity-75 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200"></div>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <HomeIcon className="h-5 w-5 text-blue-500 group-hover:text-blue-600 transition-colors duration-200" />
+              <span className="font-semibold text-lg">Vibe</span>
+            </div>
           </Link>
         </div>
         <SignedOut>
@@ -58,7 +68,10 @@ export const Navbar = () => {
           </div>
         </SignedOut>
         <SignedIn>
-          <UserControl showName />
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <UserControl showName />
+          </div>
         </SignedIn>
       </div>
     </nav>

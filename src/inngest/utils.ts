@@ -13,23 +13,26 @@ export function extractSandboxId(sandboxUrl: string): string {
     if (!withoutProtocol) {
       throw new Error("Invalid URL format - missing protocol");
     }
-    
+
     // Extract the subdomain part (before .e2b.dev)
     const subdomain = withoutProtocol.split(".")[0];
     if (!subdomain) {
       throw new Error("Invalid URL format - missing subdomain");
     }
-    
+
     // Remove port suffix (everything after the last hyphen)
     const sandboxId = subdomain.split("-")[0];
     if (!sandboxId) {
       throw new Error("Invalid URL format - missing sandbox ID");
     }
-    
+
     console.log(`Extracted sandbox ID: ${sandboxId} from URL: ${sandboxUrl}`);
     return sandboxId;
   } catch (error) {
-    console.error(`Failed to extract sandbox ID from URL: ${sandboxUrl}`, error);
+    console.error(
+      `Failed to extract sandbox ID from URL: ${sandboxUrl}`,
+      error
+    );
     throw new Error(`Invalid sandbox URL format: ${sandboxUrl}`);
   }
 }
@@ -43,13 +46,18 @@ export async function getSandbox(sandboxId: string) {
     return sandbox;
   } catch (error) {
     console.error(`Failed to connect to sandbox: ${sandboxId}`, error);
-    
+
     // Check if it's a "sandbox not found" error specifically
     const errorMessage = error instanceof Error ? error.message : String(error);
-    if (errorMessage.toLowerCase().includes('not found') || errorMessage.toLowerCase().includes('404')) {
-      throw new Error(`Sandbox ${sandboxId} no longer exists or has expired. Please create a new project.`);
+    if (
+      errorMessage.toLowerCase().includes("not found") ||
+      errorMessage.toLowerCase().includes("404")
+    ) {
+      throw new Error(
+        `Sandbox ${sandboxId} no longer exists or has expired. Please create a new project.`
+      );
     }
-    
+
     throw new Error(`Sandbox connection failed: ${sandboxId}. ${errorMessage}`);
   }
 }

@@ -1,5 +1,9 @@
 import { useState } from "react";
-import { ExternalLinkIcon, RefreshCcwIcon, AlertTriangleIcon } from "lucide-react";
+import {
+  ExternalLinkIcon,
+  RefreshCcwIcon,
+  AlertTriangleIcon,
+} from "lucide-react";
 
 import { Fragment } from "@/generated/prisma";
 import { Button } from "@/components/ui/button";
@@ -25,17 +29,13 @@ export function FragmentWeb({ data }: Props) {
   };
 
   // Simple check if sandbox URL exists and looks valid
-  const hasValidUrl = data.sandboxUrl && data.sandboxUrl.startsWith('https://');
-  
+  const hasValidUrl = data.sandboxUrl && data.sandboxUrl.startsWith("https://");
+
   return (
     <div className="flex flex-col w-full h-full">
       <div className="p-2 border-b bg-sidebar flex items-center gap-x-2">
         <Hint text="Refresh" side="bottom" align="start">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={onRefresh}
-          >
+          <Button size="sm" variant="outline" onClick={onRefresh}>
             <RefreshCcwIcon />
           </Button>
         </Hint>
@@ -64,7 +64,7 @@ export function FragmentWeb({ data }: Props) {
           </Button>
         </Hint>
       </div>
-      
+
       {!hasValidUrl ? (
         <div className="flex-1 flex items-center justify-center p-8">
           <Alert className="max-w-md">

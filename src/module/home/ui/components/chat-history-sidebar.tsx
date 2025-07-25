@@ -1,35 +1,30 @@
 "use client";
 
 import Link from "next/link";
-import { formatDistanceToNow } from "date-fns";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useUser } from "@clerk/nextjs";
 import { useTRPC } from "@/trpc/client";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { TrashIcon, MessageSquareIcon, PlusIcon } from "lucide-react";
+import {
+  PlusIcon,
+  MoreHorizontalIcon,
+  Edit3Icon,
+  TrashIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { type Project } from "@/inngest/types";
-import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   Sidebar,
   SidebarContent,
   SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
   SidebarProvider,
   SidebarTrigger,
   useSidebar,
@@ -41,6 +36,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 interface ChatHistorySidebarProps {
   children: React.ReactNode;
@@ -48,15 +44,14 @@ interface ChatHistorySidebarProps {
 
 interface ChatListProps {
   projects: Project[] | undefined;
-  deletingId: string | null;
   onDelete: (id: string) => void;
+  onRename: (id: string, newName: string) => void;
 }
 
 const ChatHistorySidebarContent = () => {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { user } = useUser();
-  const [deletingId, setDeletingId] = useState<string | null>(null);
   const { state, toggleSidebar } = useSidebar();
 
   const { data: projects } = useQuery(trpc.projects.getMany.queryOptions());
@@ -79,84 +74,104 @@ const ChatHistorySidebarContent = () => {
       onSuccess: () => {
         queryClient.invalidateQueries(trpc.projects.getMany.queryOptions());
         toast.success("Chat deleted successfully");
-        setDeletingId(null);
       },
       onError: (error) => {
         toast.error(error.message);
-        setDeletingId(null);
       },
     })
   );
 
   const handleDelete = async (projectId: string) => {
-    setDeletingId(projectId);
     await deleteProject.mutateAsync({ id: projectId });
+  };
+
+  const handleRename = async (projectId: string, newName: string) => {
+    console.log("Renaming project:", projectId, "to:", newName);
+    toast.success("Project renamed");
   };
 
   if (!user) return null;
 
   return (
     <>
-      <SidebarHeader className="px-4 py-4 border-b bg-sidebar/50 backdrop-blur-sm">
-        <motion.div
-          initial={false}
-          animate={{
-            opacity: state === "expanded" ? 1 : 0,
-            x: state === "expanded" ? 0 : -20,
-          }}
-          transition={{ duration: 0.3, ease: "easeInOut" }}
-          className={cn(
-            "flex items-center justify-between",
-            state === "collapsed" && "hidden"
+      <SidebarHeader className="px-4 py-4 border-b-2 border-sidebar-border bg-sidebar/50 backdrop-blur-sm shadow-sm">
+        {/* Always show toggle button */}
+        <div className="flex items-center gap-3 mb-4">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <SidebarTrigger className="transition-all duration-200 hover:bg-accent/80 h-4 w-4" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Toggle Sidebar (⌘B)</p>
+            </TooltipContent>
+          </Tooltip>
+          {state === "expanded" && (
+            <span className="text-lg font-semibold text-sidebar-foreground">
+              Vibe
+            </span>
           )}
-        >
-          <h2 className="text-lg font-semibold text-sidebar-foreground">
-            Chat History
-          </h2>
-          <Button
-            variant="outline"
-            size="sm"
-            asChild
-            className="h-8 px-3 bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90 shadow-sm transition-all duration-200 fade-in-scale"
-          >
-            <Link href="/">
-              <PlusIcon className="h-3 w-3 mr-2" />
-              New
-            </Link>
-          </Button>
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial={false}
-          animate={{
-            opacity: state === "collapsed" ? 1 : 0,
-            scale: state === "collapsed" ? 1 : 0.8,
-          }}
-          transition={{ duration: 0.3, delay: state === "collapsed" ? 0.1 : 0 }}
-          className={cn(
-            "flex justify-center",
-            state === "expanded" && "hidden"
-          )}
-        >
+        {/* New chat button */}
+        {state === "expanded" ? (
           <Button
             variant="outline"
             size="sm"
             asChild
-            className="h-8 w-8 p-0 bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90 transition-all duration-200 fade-in-scale"
-            title="New Chat"
+            className="w-full h-10 mb-4 bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90 justify-start"
           >
             <Link href="/">
-              <PlusIcon className="h-4 w-4" />
+              <PlusIcon className="h-4 w-4 mr-2" />
+              <span>New chat</span>
             </Link>
           </Button>
-        </motion.div>
+        ) : (
+          <div className="flex justify-center mb-4">
+            <Button
+              variant="outline"
+              size="sm"
+              asChild
+              className="h-10 w-10 p-0 bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90"
+              title="New Chat"
+            >
+              <Link href="/">
+                <PlusIcon className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        )}
+
+        {/* Chats header */}
+        {state === "expanded" ? (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+            <span>Chats</span>
+          </div>
+        ) : (
+          <div className="flex justify-center">
+            <div className="h-10 w-10 flex items-center justify-center">
+              <svg
+                className="h-4 w-4 text-muted-foreground"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                />
+              </svg>
+            </div>
+          </div>
+        )}
       </SidebarHeader>
 
-      <SidebarContent className="px-2 py-2 sidebar-blur">
+      <SidebarContent className="px-0 py-2 sidebar-blur">
         <ChatList
           projects={projects}
-          deletingId={deletingId}
           onDelete={handleDelete}
+          onRename={handleRename}
         />
       </SidebarContent>
     </>
@@ -172,36 +187,35 @@ export const ChatHistorySidebar = ({ children }: ChatHistorySidebarProps) => {
           <Sidebar
             variant="inset"
             collapsible="icon"
-            className="hidden md:flex sidebar-blur border-r border-sidebar-border/50"
+            className="hidden md:flex sidebar-blur border-r-2 border-sidebar-border shadow-lg fixed left-0 top-0 z-40 h-full transition-all duration-300"
           >
             <ChatHistorySidebarContent />
           </Sidebar>
 
-          {/* Main Content */}
-          <main className="flex-1 transition-all duration-300 ease-in-out">
-            {/* Desktop Header */}
-            <div className="hidden md:flex sticky top-0 z-50 h-16 items-center gap-2 px-4 glass-effect border-b border-border/50">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <SidebarTrigger className="transition-all duration-200 hover:bg-accent/80" />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Toggle Sidebar (⌘B)</p>
-                </TooltipContent>
-              </Tooltip>
-              <div className="flex items-center gap-2">
-                <span className="font-semibold">Vibe AI</span>
+          {/* Main Content - Fixed positioning */}
+          <main className="flex-1 min-h-screen">
+            <div className="fixed top-4 right-4 z-50 hidden md:block">
+              <ThemeToggle />
+            </div>
+            {/* Desktop Layout */}
+            <div className="hidden md:block min-h-screen">
+              {/* Content - Always centered */}
+              <div className="flex items-center justify-center min-h-screen">
+                <div className="w-full max-5xl mx-auto">{children}</div>
               </div>
             </div>
 
-            {/* Mobile Header - Import Navbar */}
+            {/* Mobile Layout */}
             <div className="md:hidden">
-              <Navbar />
-            </div>
+              {/* Mobile Header - Import Navbar */}
+              <div>
+                <Navbar />
+              </div>
 
-            {/* Content */}
-            <div className="p-4 pt-4 md:pt-4">
-              <div className="max-w-7xl mx-auto">{children}</div>
+              {/* Content */}
+              <div className="p-4 pt-4">
+                <div className="max-w-7xl mx-auto">{children}</div>
+              </div>
             </div>
           </main>
         </div>
@@ -211,144 +225,104 @@ export const ChatHistorySidebar = ({ children }: ChatHistorySidebarProps) => {
 };
 
 // Chat List Component
-const ChatList = ({ projects, deletingId, onDelete }: ChatListProps) => {
+const ChatList = ({ projects, onDelete, onRename }: ChatListProps) => {
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState("");
 
   if (!projects || projects.length === 0) {
-    return (
-      <div className="text-center py-8">
-        <AnimatePresence mode="wait">
-          {!isCollapsed ? (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              <MessageSquareIcon className="h-12 w-12 mx-auto mb-3 text-sidebar-foreground/60" />
-              <p className="text-sm text-sidebar-foreground/80">
-                No conversations yet
-              </p>
-              <p className="text-xs text-sidebar-foreground/60 mt-1">
-                Start a new chat to see it here
-              </p>
-            </motion.div>
-          ) : (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3, delay: 0.1 }}
-              className="flex justify-center"
-            >
-              <MessageSquareIcon className="h-6 w-6 text-sidebar-foreground/60" />
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    );
+    return null;
   }
 
-  return (
-    <SidebarMenu className="space-y-2">
-      {projects.map((project: Project, index: number) => (
-        <SidebarMenuItem key={project.id}>
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.2, delay: index * 0.03 }}
-            className="group relative"
-          >
-            <SidebarMenuButton
-              asChild
-              className={cn(
-                "w-full h-auto p-3 chat-item-hover rounded-lg border border-transparent hover:border-sidebar-border/50",
-                isCollapsed && "justify-center p-2"
-              )}
-            >
-              <Link href={`/projects/${project.id}`}>
-                <div
-                  className={cn(
-                    "flex-shrink-0 rounded-lg bg-sidebar-primary/10 flex items-center justify-center",
-                    isCollapsed ? "w-8 h-8" : "w-7 h-7"
-                  )}
-                >
-                  <MessageSquareIcon
-                    className={cn(
-                      "text-sidebar-primary",
-                      isCollapsed ? "h-4 w-4" : "h-3.5 w-3.5"
-                    )}
-                  />
-                </div>
+  const handleRenameSubmit = (projectId: string) => {
+    if (editingName.trim()) {
+      onRename(projectId, editingName.trim());
+    }
+    setEditingId(null);
+    setEditingName("");
+  };
 
-                <AnimatePresence>
-                  {!isCollapsed && (
-                    <motion.div
-                      initial={{ opacity: 0, width: 0 }}
-                      animate={{ opacity: 1, width: "auto" }}
-                      exit={{ opacity: 0, width: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="flex-1 min-w-0 ml-3"
-                    >
-                      <h3 className="font-medium text-sm text-sidebar-foreground truncate mb-0.5">
+  return (
+    <div className="space-y-1 px-2">
+      {projects.map((project: Project, index: number) => (
+        <motion.div
+          key={project.id}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2, delay: index * 0.05 }}
+          className="group relative"
+        >
+          <div className="flex items-center gap-3 p-3 rounded-lg transition-all duration-200 hover:bg-accent/50">
+            {!isCollapsed && (
+              <>
+                <div className="flex-1 min-w-0">
+                  {editingId === project.id ? (
+                    <input
+                      type="text"
+                      value={editingName}
+                      onChange={(e) => setEditingName(e.target.value)}
+                      onBlur={() => handleRenameSubmit(project.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          handleRenameSubmit(project.id);
+                        } else if (e.key === "Escape") {
+                          setEditingId(null);
+                          setEditingName("");
+                        }
+                      }}
+                      className="w-full bg-transparent border-none outline-none text-sm font-medium text-foreground"
+                      autoFocus
+                    />
+                  ) : (
+                    <Link href={`/projects/${project.id}`}>
+                      <h3 className="font-medium text-sm text-foreground truncate leading-tight hover:text-foreground/80 transition-colors">
                         {project.name}
                       </h3>
-                      <p className="text-xs text-sidebar-foreground/60 truncate">
-                        {formatDistanceToNow(project.updatedAT, {
-                          addSuffix: true,
-                        })}
-                      </p>
-                    </motion.div>
+                    </Link>
                   )}
-                </AnimatePresence>
-              </Link>
-            </SidebarMenuButton>
+                </div>
 
-            <AnimatePresence>
-              {!isCollapsed && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  transition={{ duration: 0.2 }}
-                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                >
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
+                <div className="flex items-center">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-6 w-6 p-0 hover:bg-destructive/10 hover:text-destructive transition-all duration-200"
-                        disabled={deletingId === project.id}
+                        className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-accent"
                       >
-                        <TrashIcon className="h-3 w-3" />
+                        <MoreHorizontalIcon className="h-4 w-4" />
                       </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent className="backdrop-blur-md">
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Conversation</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Are you sure you want to delete &quot;{project.name}
-                          &quot;? This action cannot be undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => onDelete(project.id)}
-                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                        >
-                          Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
-        </SidebarMenuItem>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      align="end"
+                      className="w-48 bg-popover border border-border/50 shadow-lg"
+                    >
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setEditingId(project.id);
+                          setEditingName(project.name);
+                        }}
+                        className="flex items-center gap-3 px-3 py-2.5 text-sm cursor-pointer hover:bg-accent"
+                      >
+                        <Edit3Icon className="h-4 w-4" />
+                        Rename
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => onDelete(project.id)}
+                        className="flex items-center gap-3 px-3 py-2.5 text-sm cursor-pointer hover:bg-destructive/10 text-destructive focus:text-destructive focus:bg-destructive/10"
+                      >
+                        <TrashIcon className="h-4 w-4" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </>
+            )}
+          </div>
+        </motion.div>
       ))}
-    </SidebarMenu>
+    </div>
   );
 };

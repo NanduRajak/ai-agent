@@ -52,18 +52,24 @@ export const codeAgentFunction = inngest.createFunction(
           "Creating E2B sandbox with API key:",
           process.env.E2B_API_KEY ? "AVAILABLE" : "MISSING"
         );
-        
+
         // Try with template name first, fallback to template ID
         let sandbox;
         try {
           sandbox = await Sandbox.create("vibe-nextjs-nandu");
-          console.log("Sandbox created successfully with template name:", sandbox.sandboxId);
+          console.log(
+            "Sandbox created successfully with template name:",
+            sandbox.sandboxId
+          );
         } catch (nameError) {
           console.warn("Template name failed, trying template ID:", nameError);
           sandbox = await Sandbox.create("d622vkz8p86647vfbfsu");
-          console.log("Sandbox created successfully with template ID:", sandbox.sandboxId);
+          console.log(
+            "Sandbox created successfully with template ID:",
+            sandbox.sandboxId
+          );
         }
-        
+
         await sandbox.setTimeout(60_000 * 10);
         return sandbox.sandboxId;
       } catch (error) {
@@ -72,15 +78,26 @@ export const codeAgentFunction = inngest.createFunction(
           "Error message:",
           error instanceof Error ? error.message : String(error)
         );
-        
+
         // Provide more specific error messages
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        if (errorMessage.includes('unauthorized') || errorMessage.includes('401')) {
-          throw new Error("E2B API key is invalid or missing. Please check your environment variables.");
-        } else if (errorMessage.includes('template') || errorMessage.includes('not found')) {
-          throw new Error("E2B template 'vibe-nextjs-nandu' not found. Please ensure the template exists.");
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        if (
+          errorMessage.includes("unauthorized") ||
+          errorMessage.includes("401")
+        ) {
+          throw new Error(
+            "E2B API key is invalid or missing. Please check your environment variables."
+          );
+        } else if (
+          errorMessage.includes("template") ||
+          errorMessage.includes("not found")
+        ) {
+          throw new Error(
+            "E2B template 'vibe-nextjs-nandu' not found. Please ensure the template exists."
+          );
         }
-        
+
         throw error;
       }
     });
@@ -489,9 +506,11 @@ export const updateSandboxFilesFunction = inngest.createFunction(
 
     return await step.run("update-files", async () => {
       try {
-        console.log(`🔧 Updating files in sandbox. Original URL: ${event.data.sandboxUrl}`);
+        console.log(
+          `🔧 Updating files in sandbox. Original URL: ${event.data.sandboxUrl}`
+        );
         console.log(`🔧 Extracted sandbox ID: ${sandboxId}`);
-        
+
         const sandbox = await getSandbox(sandboxId);
         console.log("Updating files in sandbox:", sandboxId);
 

@@ -11,24 +11,38 @@ interface Props {
 }
 
 const Page = async ({ params }: Props) => {
-  const { projectId } = await params;
+  try {
+    const { projectId } = await params;
 
-  const queryClient = getQueryClient();
-  void queryClient.prefetchQuery(
-    trpc.messages.getMany.queryOptions({ projectId })
-  );
-  void queryClient.prefetchQuery(
-    trpc.projects.getOne.queryOptions({ id: projectId })
-  );
-  return (
-    <HydrationBoundary state={dehydrate(queryClient)}>
-      <ErrorBoundary fallback={<p>Error!</p>}>
-        <Suspense fallback={<p>Loading...</p>}>
-          <ProjectView projectId={projectId} />
-        </Suspense>
-      </ErrorBoundary>
-    </HydrationBoundary>
-  );
+    const queryClient = getQueryClient();
+
+    // Prefetch data with error handling
+    try {
+      await queryClient.prefetchQuery(
+        trpc.messages.getMany.queryOptions({ projectId })
+      );
+      await queryClient.prefetchQuery(
+        trpc.projects.getOne.queryOptions({ id: projectId })
+      );
+    } catch (error) {
+      console.warn("Failed to prefetch data:", error);
+    }
+
+    return (
+      <HydrationBoundary state={dehydrate(queryClient)}>
+        <ErrorBoundary
+          fallback={<div className="p-4">Something went wrong!</div>}
+        >
+          <Suspense fallback={<div className="p-4">Loading...</div>}>
+            <ProjectView projectId={projectId} />
+          </Suspense>
+        </ErrorBoundary>
+      </HydrationBoundary>
+    );
+  } catch (error) {
+    console.error("Error in project page:", error);
+    return <div className="p-4">Error loading project</div>;
+  }
 };
 
 export default Page;

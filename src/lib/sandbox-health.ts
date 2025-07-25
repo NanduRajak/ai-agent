@@ -40,7 +40,9 @@ export async function checkSandboxHealth(): Promise<SandboxHealthCheck> {
     } catch {
       try {
         // Fallback to template ID
-        sandbox = await Sandbox.create("d622vkz8p86647vfbfsu", { timeoutMs: 30000 });
+        sandbox = await Sandbox.create("d622vkz8p86647vfbfsu", {
+          timeoutMs: 30000,
+        });
       } catch (idError) {
         return {
           isHealthy: false,
@@ -74,9 +76,9 @@ export async function checkSandboxHealth(): Promise<SandboxHealthCheck> {
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    
+
     let apiKeyValid = true;
-    if (errorMessage.includes('unauthorized') || errorMessage.includes('401')) {
+    if (errorMessage.includes("unauthorized") || errorMessage.includes("401")) {
       apiKeyValid = false;
     }
 
@@ -106,7 +108,7 @@ export function isValidSandboxId(sandboxId: string): boolean {
 export function isValidSandboxUrl(url: string): boolean {
   try {
     const urlObj = new URL(url);
-    return urlObj.hostname.endsWith('.e2b.dev') && urlObj.protocol === 'https:';
+    return urlObj.hostname.endsWith(".e2b.dev") && urlObj.protocol === "https:";
   } catch {
     return false;
   }
