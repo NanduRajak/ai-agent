@@ -12,9 +12,10 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface Props {
   data: Fragment;
+  messageType: "RESULT" | "ERROR";
 }
 
-export function FragmentWeb({ data }: Props) {
+export function FragmentWeb({ data, messageType }: Props) {
   const [copied, setCopied] = useState(false);
   const [fragmentKey, setFragmentKey] = useState(0);
 
@@ -29,7 +30,7 @@ export function FragmentWeb({ data }: Props) {
   };
 
   // Simple check if sandbox URL exists and looks valid
-  const hasValidUrl = data.sandboxUrl && data.sandboxUrl.startsWith("https://");
+const hasValidResult = messageType === "RESULT" && data.sandboxUrl && data.sandboxUrl.startsWith("https://");
 
   return (
     <div className="flex flex-col w-full h-full">
@@ -65,12 +66,15 @@ export function FragmentWeb({ data }: Props) {
         </Hint>
       </div>
 
-      {!hasValidUrl ? (
+{!hasValidResult ? (
         <div className="flex-1 flex items-center justify-center p-8">
-          <Alert className="max-w-md">
+          <Alert className="max-w-md" variant={messageType === "ERROR" ? "destructive" : "default"}>
             <AlertTriangleIcon className="h-4 w-4" />
             <AlertDescription>
-              No preview available. The sandbox URL is missing or invalid.
+              {messageType === "ERROR" 
+                ? "Failed to generate application. No preview available."
+                : "No preview available. The sandbox URL is missing or invalid."
+              }
             </AlertDescription>
           </Alert>
         </div>

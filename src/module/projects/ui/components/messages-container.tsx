@@ -10,12 +10,14 @@ interface Props {
   projectId: string;
   activeFragment: Fragment | null;
   setActiveFragment: (fragment: Fragment | null) => void;
+  setActiveMessageType: (type: "RESULT" | "ERROR") => void;
 }
 
 export const MessagesConatiner = ({
   projectId,
   activeFragment,
   setActiveFragment,
+  setActiveMessageType,
 }: Props) => {
   const trpc = useTRPC();
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -41,9 +43,10 @@ export const MessagesConatiner = ({
       lastAssistantMessage.id !== lastAssistantMessageIdRef.current
     ) {
       setActiveFragment(lastAssistantMessage.fragment);
+      setActiveMessageType(lastAssistantMessage.type);
       lastAssistantMessageIdRef.current = lastAssistantMessage.id;
     }
-  }, [messages, setActiveFragment]);
+  }, [messages, setActiveFragment, setActiveMessageType]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView();
@@ -63,7 +66,10 @@ export const MessagesConatiner = ({
               fragment={message.fragment}
               createdAt={message.createdAt}
               isActivefragment={activeFragment?.id === message.fragment?.id}
-              onFragmentClick={() => setActiveFragment(message.fragment)}
+              onFragmentClick={() => {
+                setActiveFragment(message.fragment);
+                setActiveMessageType(message.type);
+              }}
               type={message.type}
             />
           ))}

@@ -1,0 +1,88 @@
+/* View Transition API styles for theme toggle animations */
+
+/* Enable view transitions for the entire document */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* Dark theme transition */
+.dark::view-transition-old(root) {
+  z-index: 1;
+}
+
+.dark::view-transition-new(root) {
+  z-index: 999;
+}
+
+/* Light theme transition */
+.light::view-transition-old(root) {
+  z-index: 999;
+}
+
+.light::view-transition-new(root) {
+  z-index: 1;
+}
+
+/* Circle blur variant specific styles */
+::view-transition-old(root) {
+  animation-name: scale-out;
+  animation-duration: 0.5s;
+  animation-timing-function: ease-in-out;
+}
+
+::view-transition-new(root) {
+  animation-name: scale-in;
+  animation-duration: 0.5s;
+  animation-timing-function: ease-in-out;
+}
+
+/* Keyframes for smooth scaling animations */
+@keyframes scale-out {
+  from {
+    transform: scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+}
+
+@keyframes scale-in {
+  from {
+    transform: scale(1.2);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Circle blur effect for smooth transitions */
+.theme-toggle-circle-blur::view-transition-old(root) {
+  filter: blur(4px);
+  transform-origin: var(--transition-origin, center);
+}
+
+.theme-toggle-circle-blur::view-transition-new(root) {
+  filter: blur(0px);
+  transform-origin: var(--transition-origin, center);
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 0.1s;
+  }
+}
+
+/* Fallback for browsers without view transition support */
+@supports not (view-transition-name: root) {
+  .theme-toggle-fallback {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}

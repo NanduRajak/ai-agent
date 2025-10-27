@@ -25,6 +25,7 @@ interface Props {
 
 export const ProjectView = ({ projectId }: Props) => {
   const [activeFragment, setActiveFragment] = useState<Fragment | null>(null);
+  const [activeMessageType, setActiveMessageType] = useState<"RESULT" | "ERROR">("RESULT");
   const [tabState, setTabState] = useState<"preview" | "code">("preview");
   const trpc = useTRPC();
 
@@ -74,6 +75,7 @@ export const ProjectView = ({ projectId }: Props) => {
                 projectId={projectId}
                 activeFragment={activeFragment}
                 setActiveFragment={setActiveFragment}
+                setActiveMessageType={setActiveMessageType}
               />
             </Suspense>
           </ErrorBoundary>
@@ -102,7 +104,7 @@ export const ProjectView = ({ projectId }: Props) => {
               </div>
             </div>
             <TabsContent value="preview">
-              {!!activeFragment && <FragmentWeb data={activeFragment} />}
+{!!activeFragment && <FragmentWeb data={activeFragment} messageType={activeMessageType} />}
             </TabsContent>
             <TabsContent value="code" className="min-h-0">
               {!!activeFragment?.files && (
